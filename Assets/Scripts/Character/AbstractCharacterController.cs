@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniGDC.FightingSimulator.Character
+using UniGDC.Unevolved.Stage;
+
+namespace UniGDC.Unevolved.Character
 {
     /// <summary>
     /// Base class for all character controllers.
@@ -25,12 +27,6 @@ namespace UniGDC.FightingSimulator.Character
         public float MaxHP;
 
         /// <summary>
-        /// True if the character is crouching.
-        /// </summary>
-        [NonSerialized]
-        public bool Crouched;
-
-        /// <summary>
         /// True if the character is in controllable state.
         /// </summary>
         [NonSerialized]
@@ -47,26 +43,36 @@ namespace UniGDC.FightingSimulator.Character
         [NonSerialized]
         public float ZPosition;
 
-        /// <summary>
-        /// The direction that the character is facing.
-        /// </summary>
-        [NonSerialized]
-        public Constants.Direction FacingDirection;
-
         #endregion // External Parameters
 
         #region Internal Parameters
 
-        private float HorizontalSpeed = 0.0f;
+        /// <summary>
+        /// Horizontal speed of the character. This value changes continuously
+        /// throughout the game.
+        /// </summary>
+        private float _horizontalSpeed = 0.0f;
 
-        private float VerticalSpeed = 0.0f;
+        /// <summary>
+        /// Vertical speed of the character. This value changes continuously
+        /// throughout the game.
+        /// </summary>
+        private float _verticalSpeed = 0.0f;
+
+        /// <summary>
+        /// Height of the character.
+        /// </summary>
+        private float _height;
 
         #endregion // Internal Parameters
 
         #region Controllable Parameters
 
+        /// <summary>
+        /// Speed of the character in relation to their default speed.
+        /// </summary>
         [SerializeField]
-        protected float MaximumVelocity;
+        protected float SpeedMultiplier = 1;
 
         #endregion // Controllable Parameters
 
@@ -79,10 +85,10 @@ namespace UniGDC.FightingSimulator.Character
         protected Rigidbody2D Rigidbody;
 
         [NonSerialized]
-        protected Constants StaticVariables;
+        protected StageSettings StageVariables;
 
         [NonSerialized]
-        protected GameObject FootLocation;
+        protected Transform SpriteTransform;
 
         #endregion // Cached Objects
 
@@ -92,9 +98,8 @@ namespace UniGDC.FightingSimulator.Character
         {
             this.Animator = gameObject.GetComponent<Animator>();
             this.Rigidbody = gameObject.GetComponent<Rigidbody2D>();
-            this.StaticVariables = GameObject.Find("Static Variables").GetComponent<Constants>();
-            this.FacingDirection = Constants.Direction.Right;
-            this.FootLocation = GameObject.Find("Foot Position");
+            this.StageVariables = GameObject.Find("Stage").GetComponent<StageSettings>();
+            this.SpriteTransform = this.transform.Find("Sprite");
         }
         
         protected virtual void Start()
@@ -104,7 +109,7 @@ namespace UniGDC.FightingSimulator.Character
 
         protected virtual void Update()
         {
-            // Implemented by children classes
+            Face(this._horizontalSpeed);
         }
 
         protected virtual void FixedUpdate()
@@ -112,9 +117,9 @@ namespace UniGDC.FightingSimulator.Character
             if (!this.Controllable)
                 return;
 
-            this.Rigidbody.velocity = new Vector2(this.HorizontalSpeed, 0) + this.StaticVariables.Forward * this.VerticalSpeed;
-
-            Vector3 foot = this.FootLocation.transform.position;
+            Vector2 target = Vector2.right * this._horizontalSpeed
+                             + this.StageVariables.VerticalDirection * this._verticalSpeed;
+            this.Rigidbody.velocity = target;
         }
 
         #endregion // Unity Functions
@@ -125,24 +130,15 @@ namespace UniGDC.FightingSimulator.Character
         /// Moves the character with given parameter.
         /// </summary>
         /// <param name="horizontal">Left-right movement of the character</param>
-        /// <param name="vertical">Forward-backward movement of the character (on screen up and down movement)</param>
+        /// <param name="vertical">Forward-backward movement of the character (up and down movement on screen)</param>
         public virtual void Move(float horizontal, float vertical)
         {
-            if (horizontal != 0.0f)
-                this.FacingDirection = (horizontal < 0.0f) ? Constants.Direction.Left : Constants.Direction.Right;
-
-            if (vertical != 0.0f)
-                this.FacingDirection |= (vertical < 0.0f) ? Constants.Direction.Up : Constants.Direction.Down;
-
-            this.HorizontalSpeed = Mathf.Clamp(this.StaticVariables.DefaultCharacterSpeed
-                                               * horizontal,
-                                               -this.MaximumVelocity,
-                                               this.MaximumVelocity);
-            this.VerticalSpeed = Mathf.Clamp(this.StaticVariables.DefaultCharacterSpeed
-                                             * this.StaticVariables.VerticalSpeedMultiplier
-                                             * vertical,
-                                             -this.MaximumVelocity,
-                                             this.MaximumVelocity);
+            this._horizontalSpeed = horizontal
+                                    * this.StageVariables.CharacterSpeed
+                                    * this.SpeedMultiplier;
+            this._verticalSpeed = vertical
+                                  * this.StageVariables.CharacterSpeed
+                                  * this.SpeedMultiplier;
         }
 
         /// <summary>
@@ -165,6 +161,17 @@ namespace UniGDC.FightingSimulator.Character
             
             if (newMaxHP == default(float))
                 this.MaxHP = newMaxHP;
+        }
+
+        public virtual void Face(float horizontal)
+        {
+            Vector3 scale = this.SpriteTransform.localScale;
+
+            if (horizontal != 0.0f)
+                if (horizontal < 0.0f)
+                    scale.x = -1.0f;
+                else
+                    scale.x = 1.0f;
         }
 
         #endregion // Other Functions

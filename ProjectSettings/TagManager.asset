@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Props
   layers:
   - Default
   - TransparentFX
@@ -41,19 +42,19 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Background
-    uniqueID: 3998461831
-    locked: 0
   - name: Ground
     uniqueID: 3633581583
     locked: 0
-  - name: BackProps
+  - name: Background
+    uniqueID: 3998461831
+    locked: 0
+  - name: Back Props
     uniqueID: 289284961
     locked: 0
-  - name: Characters
+  - name: Stage Objects
     uniqueID: 1965090751
     locked: 0
-  - name: FrontProps
+  - name: Front Props
     uniqueID: 2616562849
     locked: 0
   - name: UI

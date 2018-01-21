@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UniGDC.FightingSimulator.Utility
+namespace UniGDC.Unevolved.Utility
 {
     internal class BackgroundFiller : MonoBehaviour
     {

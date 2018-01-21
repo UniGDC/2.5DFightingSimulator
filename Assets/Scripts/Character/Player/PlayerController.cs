@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UniGDC.FightingSimulator.Character.Player
+namespace UniGDC.Unevolved.Character.Player
 {
     /// <summary>
     /// Controller for player character.
@@ -12,22 +12,22 @@ namespace UniGDC.FightingSimulator.Character.Player
         #region Internal Parameters
 
         /// <summary>
-        /// True if the character is jumping.
+        /// True if the player is crouching.
         /// </summary>
         [NonSerialized]
-        public bool Jumped;
-
-        /// <summary>
-        /// Amount of time that has passed since the player started jumping.
-        /// </summary>
-        [NonSerialized]
-        public float JumpTime;
+        public bool Crouched;
 
         #endregion // Internal Parameters
 
         #region Cached Objects
 
-        private GameObject Textbox;
+        private GameObject _mainCamera;
+
+        private GameObject _spriteObject;
+
+        private GameObject _colliderObject;
+
+        private SpriteRenderer _renderer;
 
         #endregion // Cached Objects
 
@@ -37,19 +37,9 @@ namespace UniGDC.FightingSimulator.Character.Player
         {
             base.Awake();
 
-            this.Textbox = GameObject.Find("Text");
-        }
-
-        protected override void FixedUpdate()
-        {
-            base.FixedUpdate();
-
-            this.Textbox.GetComponent<Text>().text = "FootX: " + this.FootLocation.transform.position.x + "\nFootY: " + this.FootLocation.transform.position.y
-                + "\nBodyX: " + gameObject.transform.position.x + "\nBodyY: " + gameObject.transform.position.y + "\nYDiff: " + (gameObject.transform.position.y - this.FootLocation.transform.position.y);
-
-            Vector3 clamped = new Vector3(Mathf.Clamp(gameObject.transform.position.x, -9.0f, 9.0f),
-                                          Mathf.Clamp(this.FootLocation.transform.position.y, -5.0f, 1.8f) + 1.5f);
-            gameObject.transform.position = clamped;
+            this._mainCamera = GameObject.Find("Main Camera");
+            this._spriteObject = this.transform.Find("Sprite").gameObject;
+            this._colliderObject = this.transform.Find("Collider").gameObject;
         }
 
         #endregion // Unity Functions
